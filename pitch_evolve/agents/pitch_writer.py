@@ -5,8 +5,8 @@ from pitch_evolve.tools.web_search import web_search
 
 from pydantic_ai import Agent, RunContext
 from pydantic import BaseModel, Field
-from file_tools import write_file
-from prompts import utils as prompt_utils
+from pitch_evolve.tools.file_tools import write_file
+from pitch_evolve.prompts import utils as prompt_utils
 
 
 class PitchWriterOutput(BaseModel):
@@ -19,6 +19,7 @@ class PitchWriterOutput(BaseModel):
 class PitchWriterDeps(BaseModel):
     query_budget: int = 5
     max_results: int = 3
+    recency: str = "m"
 
     async def search(self, query: str, recency: str, max_results: Optional[int] = None) -> Dict[str, Any]:
         """
@@ -69,8 +70,9 @@ if __name__ == "__main__":
         Output the pitch to a file named pitch.md when complete.
     """
 
-    deps = PitchWriterDeps(max_results=3, recency="m", query_budget=10)
+    deps = PitchWriterDeps(max_results=3, query_budget=10, recency="m")
     result = pitch_writer_agent.run_sync(prompt, deps=deps)
 
     # pretty-print without deprecated .json()
     print(result.output.model_dump_json(indent=2))
+
