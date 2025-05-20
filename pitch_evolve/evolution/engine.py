@@ -5,12 +5,13 @@ from dataclasses import dataclass, field
 from typing import Callable, List
 import os
 
-from pitch_evolve.evals import JudgeFeedback, llm_judge_score
+from pitch_evolve.agents.llm_as_judge import JudgeFeedback, llm_as_judge
+from pitch_evolve.agents.llm_as_judge_mutator import llm_as_judge_mutator
 from pitch_evolve.evolution.mutator import llm_mutate_prompt
 
 
 GeneratorFn = Callable[[str], str]
-EvaluatorFn = Callable[[str, str], JudgeFeedback]
+EvaluatorFn = Callable[[str], JudgeFeedback]
 
 
 @dataclass
@@ -19,8 +20,7 @@ class PromptEvolutionEngine:
 
     population: List[str]
     generator: GeneratorFn
-    evaluator: EvaluatorFn = llm_judge_score
-    evaluation_prompt: str = "Score this pitch from 1-5 for creativity, persuasiveness, clarity, statistical grounding, and thematic relevance. Then provide a one-sentence suggestion for improving the prompt."
+    evaluator: EvaluatorFn = llm_as_judge
     tournament_size: int = 2
     mutation_rate: float = 0.5
     history: List[List[str]] = field(default_factory=list)
@@ -34,13 +34,12 @@ class PromptEvolutionEngine:
             scored = []
             for prompt in self.population:
                 pitch = self.generator(prompt)
-                feedback_result = self.evaluator(pitch, self.evaluation_prompt)
+                feedback_result = self.evaluator(pitch)
                 feedback = getattr(feedback_result, "output", feedback_result)
                 score = (
                     feedback.scores.average() if getattr(feedback, "scores", None) else 0.0
                 )
-                suggestion = getattr(feedback, "suggestion", "")
-                scored.append((prompt, score, pitch, suggestion))
+                scored.append((prompt, score, pitch, feedback))
 
             avg_score = sum(s for _, s, _, _ in scored) / \
                 len(scored) if scored else 0.0
@@ -53,15 +52,17 @@ class PromptEvolutionEngine:
             scored.sort(key=lambda x: x[1], reverse=True)
             best_prompt, _, best_pitch, _ = scored[0]
             survivors = scored[: self.tournament_size]
-            new_population = []
+            new_population = [best_prompt]  # include best prompt
 
-            for parent, _, _, suggestion in survivors:
-                if suggestion and random.random() < self.mutation_rate:
+            # TODO: implement elitism
+            for parent_prompt, _, parent_pitch, parent_feedback in survivors:
+                if random.random() < self.mutation_rate:
                     new_population.append(
-                        llm_mutate_prompt(parent, suggestion)
+                        llm_as_judge_mutator(
+                            parent_feedback, parent_pitch, parent_prompt)
                     )
                 else:
-                    new_population.append(parent)
+                    new_population.append(parent_prompt)
 
             while len(new_population) < len(self.population):
                 parent, _, _, suggestion = random.choice(survivors)
