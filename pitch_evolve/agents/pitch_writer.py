@@ -2,12 +2,7 @@ from __future__ import annotations
 from typing import Dict, Any, Optional
 
 from pitch_evolve.tools.web_search import web_search
-
-try:
-    from pydantic_ai import Agent, RunContext
-except Exception:  # pragma: no cover - optional dependency
-    Agent = None
-    RunContext = None
+from pydantic_ai import Agent, RunContext
 from pydantic import BaseModel, Field
 from pitch_evolve.tools.file_tools import write_file
 from pitch_evolve.prompts import utils as prompt_utils
@@ -27,7 +22,15 @@ class PitchWriterDeps(BaseModel):
 
     async def search(self, query: str, recency: str, max_results: Optional[int] = None) -> Dict[str, Any]:
         """
-        Search the web with query budget tracking
+        Retrieve information from the web using Tavily's search engine.
+
+        Parameters:
+            query: The information query to search for
+            recency: Timeframe filter ('day'/'d', 'week'/'w', 'month'/'m', 'year'/'y')
+            max_results: Number of results to return (default: 5)
+
+        Returns:
+            Collection of search results or None if search fails
         """
         if self.query_budget <= 0:
             raise RuntimeError("Query budget exhausted")
@@ -35,7 +38,7 @@ class PitchWriterDeps(BaseModel):
         max_results = max_results or self.max_results
 
         results = web_search(
-            query, recency=recency, max_results=max_results)
+            query=query, recency=recency, max_results=max_results)
         return {
             "results": results,
             "query_budget_remaining": self.query_budget,
@@ -48,35 +51,29 @@ if Agent is not None:
         deps_type=PitchWriterDeps,
         output_type=PitchWriterOutput,
         tools=[write_file],
-        instructions=prompt_utils.load("prompts/pitcher.txt"),
+        instructions=prompt_utils.load("pitch_evolve/prompts/pitcher.txt"),
         model_settings={"temperature": 0.7, "max_tokens": 4096},
     )
 else:  # pragma: no cover - environment may lack pydantic_ai
     pitch_writer_agent = None
 
 
-if pitch_writer_agent is not None:
-    @pitch_writer_agent.tool
-    async def web_search(
-        ctx: RunContext[PitchWriterDeps],
-        query: str,
-        recency: str,
-        max_results: int = 5,
-    ) -> Dict[str, Any]:
-        """Retrieve information from the web using Tavily's search engine."""
-
-        return await ctx.deps.search(query, recency=recency, max_results=max_results)
-
-if __name__ == "__main__":
-    prompt = """
-        Write a pitch for a community initiative. Include relevant research and statistics.
-        Address appropriate audience demographics and back up claims with data.
-        Output the pitch to a file named pitch.md when complete.
+@pitch_writer_agent.tool
+async def search(
+    ctx: RunContext[PitchWriterDeps],
+    query: str,
+    recency: str,
+    max_results: int = 5,
+) -> Dict[str, Any]:
     """
+    Retrieve information from the web using Tavily's search engine.
 
-    deps = PitchWriterDeps(max_results=3, query_budget=10, recency="m")
-    result = pitch_writer_agent.run_sync(prompt, deps=deps)
+    Parameters:
+        query: The information query to search for
+        recency: Timeframe filter ('day'/'d', 'week'/'w', 'month'/'m', 'year'/'y')
+        max_results: Number of results to return (default: 5)
 
-    # pretty-print without deprecated .json()
-    print(result.output.model_dump_json(indent=2))
-
+    Returns:
+        Collection of search results or None if search fails
+    """
+    return await ctx.deps.search(query, recency=recency, max_results=max_results)
