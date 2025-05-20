@@ -21,9 +21,8 @@ if Agent is not None:
         MutatedPrompt,
     ](
         "openai:gpt-4o",
-        instructions=
-        """You rewrite prompts. Given a base prompt and a suggestion, apply the suggestion to produce a new prompt. Only return the mutated prompt in the 'prompt' field.""",
-        model_settings={"temperature": 0.2, "max_tokens": 512},
+        instructions="""You rewrite prompts. Given a base prompt and a suggestion, apply the suggestion to produce a new prompt. Only return the mutated prompt in the 'prompt' field.""",
+        model_settings={"temperature": 0.7, "max_tokens": 512},
     )
 else:  # pragma: no cover - environment may lack pydantic_ai
     _mutate_agent = None
