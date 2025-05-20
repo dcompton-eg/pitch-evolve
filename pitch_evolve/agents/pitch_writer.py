@@ -32,6 +32,7 @@ class PitchWriterDeps(BaseModel):
         Returns:
             Collection of search results or None if search fails
         """
+        print(f"query budget remaining: {self.query_budget}")
         if self.query_budget <= 0:
             raise RuntimeError("Query budget exhausted")
         self.query_budget -= 1
