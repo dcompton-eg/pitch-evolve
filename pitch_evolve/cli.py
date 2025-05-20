@@ -1,9 +1,14 @@
+from .evolution import PromptEvolutionEngine
+from .agents.pitch_writer import pitch_writer_agent, PitchWriterDeps
 import argparse
 
 import matplotlib.pyplot as plt
+import os
+import logfire
 
-from .agents.pitch_writer import pitch_writer_agent, PitchWriterDeps
-from .evolution import PromptEvolutionEngine
+
+logfire.configure(token=os.getenv("LOGFIRE_API_KEY"))
+logfire.instrument_openai()
 
 
 def run_pitch(prompt: str, deps: PitchWriterDeps) -> None:
@@ -30,7 +35,8 @@ def run_evolution(prompt: str, deps: PitchWriterDeps, generations: int, populati
     )
     engine.evolve(generations=generations)
 
-    plt.plot(range(1, len(engine.score_history) + 1), engine.score_history, marker="o")
+    plt.plot(range(1, len(engine.score_history) + 1),
+             engine.score_history, marker="o")
     plt.xlabel("Generation")
     plt.ylabel("Average score")
     plt.title("Pitch quality over generations")
@@ -44,17 +50,26 @@ def main() -> None:
 
     pitch_cmd = sub.add_parser("pitch", help="Generate a single pitch")
     pitch_cmd.add_argument("prompt", help="Prompt text for the agent")
-    pitch_cmd.add_argument("--recency", default="m", help="Search recency filter")
-    pitch_cmd.add_argument("--max-results", type=int, default=3, help="Number of search results")
-    pitch_cmd.add_argument("--query-budget", type=int, default=5, help="Number of web queries allowed")
+    pitch_cmd.add_argument("--recency", default="m",
+                           help="Search recency filter")
+    pitch_cmd.add_argument("--max-results", type=int,
+                           default=3, help="Number of search results")
+    pitch_cmd.add_argument("--query-budget", type=int,
+                           default=5, help="Number of web queries allowed")
 
-    evo_cmd = sub.add_parser("evolve", help="Evolve a prompt over multiple rounds")
+    evo_cmd = sub.add_parser(
+        "evolve", help="Evolve a prompt over multiple rounds")
     evo_cmd.add_argument("prompt", help="Base prompt text")
-    evo_cmd.add_argument("--generations", type=int, default=3, help="Number of evolution rounds")
-    evo_cmd.add_argument("--population", type=int, default=4, help="Population size")
-    evo_cmd.add_argument("--recency", default="m", help="Search recency filter")
-    evo_cmd.add_argument("--max-results", type=int, default=3, help="Number of search results")
-    evo_cmd.add_argument("--query-budget", type=int, default=5, help="Number of web queries allowed")
+    evo_cmd.add_argument("--generations", type=int,
+                         default=3, help="Number of evolution rounds")
+    evo_cmd.add_argument("--population", type=int,
+                         default=4, help="Population size")
+    evo_cmd.add_argument("--recency", default="m",
+                         help="Search recency filter")
+    evo_cmd.add_argument("--max-results", type=int,
+                         default=3, help="Number of search results")
+    evo_cmd.add_argument("--query-budget", type=int,
+                         default=5, help="Number of web queries allowed")
 
     args = parser.parse_args()
 
@@ -75,4 +90,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

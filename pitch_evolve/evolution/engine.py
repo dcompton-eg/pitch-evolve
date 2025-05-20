@@ -32,11 +32,13 @@ class PromptEvolutionEngine:
             for prompt in self.population:
                 pitch = self.generator(prompt)
                 feedback_result = self.evaluator(pitch, self.evaluation_prompt)
-                feedback = feedback_result.output  # Access the JudgeFeedback object from AgentRunResult
+                # Access the JudgeFeedback object from AgentRunResult
+                feedback = feedback_result.output
                 score = feedback.scores.average() if feedback.scores else 0.0
                 scored.append((prompt, score, feedback.suggestion))
 
-            avg_score = sum(s for _, s, _ in scored) / len(scored) if scored else 0.0
+            avg_score = sum(s for _, s, _ in scored) / \
+                len(scored) if scored else 0.0
             self.score_history.append(avg_score)
 
             scored.sort(key=lambda x: x[1], reverse=True)
@@ -46,7 +48,8 @@ class PromptEvolutionEngine:
             while len(new_population) < len(self.population):
                 parent, _, suggestion = random.choice(survivors)
                 if suggestion and random.random() < self.mutation_rate:
-                    new_population.append(llm_mutate_prompt(parent, suggestion))
+                    new_population.append(
+                        llm_mutate_prompt(parent, suggestion))
                 else:
                     new_population.append(parent)
 
