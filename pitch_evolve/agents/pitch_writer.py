@@ -30,11 +30,18 @@ class PitchWriterDeps(BaseModel):
             max_results: Number of results to return (default: 5)
 
         Returns:
-            Collection of search results or None if search fails
+            A dictionary containing search results (or an empty list if the
+            budget has been exhausted) and the remaining query budget.
         """
         print(f"query budget remaining: {self.query_budget}")
-        if self.query_budget <= 0:
-            raise RuntimeError("Query budget exhausted")
+        if self.query_budget <= 1:
+            # Signal to the agent that no more searches should be made
+            return {
+                "results": [],
+                "query_budget_remaining": self.query_budget,
+                "budget_exhausted": True,
+            }
+
         self.query_budget -= 1
         max_results = max_results or self.max_results
 
