@@ -1,5 +1,5 @@
 from pitch_evolve.evolution import PromptEvolutionEngine
-from pitch_evolve.evals import heuristic_score
+from pitch_evolve.evals import JudgeFeedback, PitchScores
 
 
 def dummy_generator(prompt: str) -> str:
@@ -7,10 +7,18 @@ def dummy_generator(prompt: str) -> str:
 
 
 def test_evolution_runs():
+    def dummy_evaluator(text: str, prompt: str) -> JudgeFeedback:
+        return JudgeFeedback(
+            scores=PitchScores(1, 1, 1, 1, 1), suggestion="Add a stat."
+        )
+
     engine = PromptEvolutionEngine(
         population=["Write a short pitch." for _ in range(3)],
         generator=dummy_generator,
-        evaluator=heuristic_score,
+        evaluator=dummy_evaluator,
+        mutation_rate=1.0,
     )
-    result = engine.evolve(generations=2)
+    result = engine.evolve(generations=1)
     assert len(result) == 3
+    assert any("Add a stat." in p for p in result)
+

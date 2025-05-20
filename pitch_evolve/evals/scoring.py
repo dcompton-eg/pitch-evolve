@@ -26,50 +26,26 @@ class PitchScores:
         ) / 5.0
 
 
-def heuristic_score(text: str) -> PitchScores:
-    """Return simple heuristic-based scores for a pitch.
+@dataclass
+class JudgeFeedback:
+    """Scores and an optional prompt improvement suggestion."""
 
-    The heuristics are deliberately lightweight so they can run in
-    constrained environments without external dependencies.
-    """
-
-    words = re.findall(r"\b\w+\b", text.lower())
-    unique_ratio = len(set(words)) / max(len(words), 1)
-
-    creativity = 5 if unique_ratio > 0.6 else 3 if unique_ratio > 0.4 else 1
-
-    persuasive_patterns = r"\b(join|sign\s*up|be part|get involved|participate)\b"
-    persuasiveness = 5 if re.search(persuasive_patterns, text, re.I) else 2
-
-    avg_word_len = sum(len(w) for w in words) / max(len(words), 1)
-    clarity = 5 if avg_word_len <= 5 else 2
-
-    statistical_grounding = 5 if re.search(r"\d", text) else 1
-
-    thematic_relevance = (
-        5
-        if re.search(r"\bgo\b", text, re.I) or "community" in text.lower()
-        else 2
-    )
-
-    return PitchScores(
-        creativity=creativity,
-        persuasiveness=persuasiveness,
-        clarity=clarity,
-        statistical_grounding=statistical_grounding,
-        thematic_relevance=thematic_relevance,
-    )
+    scores: Optional[PitchScores] = None
+    suggestion: str = ""
 
 
-def llm_judge_score(text: str, evaluation_prompt: str, model_name: str = "gpt-4") -> Optional[PitchScores]:
+def llm_judge_score(
+    text: str, evaluation_prompt: str, model_name: str = "gpt-4"
+) -> JudgeFeedback:
     """Placeholder for LLM-as-a-judge scoring.
 
     This function is structured so that it can call an LLM to score the text
-    according to the provided ``evaluation_prompt``. In offline environments it
-    simply returns ``None``.
+    and provide a prompt improvement suggestion according to the provided
+    ``evaluation_prompt``. In offline environments it simply returns empty
+    feedback.
     """
 
-    try:
+    try:  # pragma: no cover - optional network call
         import openai  # imported lazily so tests do not require it
 
         response = openai.ChatCompletion.create(
@@ -82,8 +58,11 @@ def llm_judge_score(text: str, evaluation_prompt: str, model_name: str = "gpt-4"
         )
         content = response.choices[0].message.content
         numbers = list(map(int, re.findall(r"(\d)", content)))
-        if len(numbers) >= 5:
-            return PitchScores(*numbers[:5])
+        suggestion_match = re.search(r"suggestion:\s*(.*)", content, re.I)
+        scores = PitchScores(*numbers[:5]) if len(numbers) >= 5 else None
+        suggestion = suggestion_match.group(1).strip() if suggestion_match else ""
+        return JudgeFeedback(scores=scores, suggestion=suggestion)
     except Exception:
         pass
-    return None
+
+    return JudgeFeedback()
