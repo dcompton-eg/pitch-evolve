@@ -23,6 +23,7 @@ class PromptEvolutionEngine:
     tournament_size: int = 2
     mutation_rate: float = 0.1
     history: List[List[str]] = field(default_factory=list)
+    score_history: List[float] = field(default_factory=list)
 
     def evolve(self, generations: int = 1) -> List[str]:
         """Run prompt evolution for a number of generations."""
@@ -33,6 +34,9 @@ class PromptEvolutionEngine:
                 feedback = self.evaluator(pitch, self.evaluation_prompt)
                 score = feedback.scores.average() if feedback.scores else 0.0
                 scored.append((prompt, score, feedback.suggestion))
+
+            avg_score = sum(s for _, s, _ in scored) / len(scored) if scored else 0.0
+            self.score_history.append(avg_score)
 
             scored.sort(key=lambda x: x[1], reverse=True)
             survivors = scored[: self.tournament_size]
