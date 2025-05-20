@@ -1,6 +1,7 @@
 from .evolution import PromptEvolutionEngine
 from .agents.pitch_writer import pitch_writer_agent, PitchWriterDeps
 import argparse
+import copy
 
 import matplotlib.pyplot as plt
 import os
@@ -27,7 +28,7 @@ def run_evolution(prompt: str, deps: PitchWriterDeps, generations: int, populati
     def generate(p: str) -> str:
         if pitch_writer_agent is None:
             return p
-        return pitch_writer_agent.run_sync(p, deps=deps).output.output
+        return pitch_writer_agent.run_sync(p, deps=copy.deepcopy(deps)).output.output
 
     engine = PromptEvolutionEngine(
         population=[prompt for _ in range(population)],
