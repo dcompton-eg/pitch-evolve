@@ -55,12 +55,12 @@ class PitchWriterDeps(BaseModel):
 
 if Agent is not None:
     pitch_writer_agent = Agent[PitchWriterDeps, PitchWriterOutput](
-        "openai:gpt-4o",
+        "openai:gpt-4.1",
         deps_type=PitchWriterDeps,
         output_type=PitchWriterOutput,
         tools=[write_file],
         instructions=prompt_utils.load("pitch_evolve/prompts/pitcher.txt"),
-        model_settings={"temperature": 0.8, "max_tokens": 4096},
+        model_settings={"temperature": 0.7, "max_tokens": 4096},
     )
 else:  # pragma: no cover - environment may lack pydantic_ai
     pitch_writer_agent = None

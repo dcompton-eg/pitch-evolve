@@ -10,7 +10,6 @@ from pitch_evolve.agents.llm_as_judge import JudgeFeedback, PitchScores
 
 class MutatorDeps(BaseModel):
     """Runtime options for the mutator (tweak here if you need)."""
-    # put knobs like `max_tokens` etc. if required later
 
 
 class MutatedPrompt(BaseModel):
@@ -19,11 +18,10 @@ class MutatedPrompt(BaseModel):
 
 
 _mutator_agent = Agent[MutatorDeps, MutatedPrompt](
-    "openai:gpt-4o",
+    "openai:gpt-4.1",
     deps_type=MutatorDeps,
     output_type=MutatedPrompt,
     model_settings={
-        # higher temperature encourages exploration; adjust to taste
         "temperature": 0.7,
         "top_p": 0.9,
         "presence_penalty": 0.4,

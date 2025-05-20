@@ -36,7 +36,7 @@ class JudgeFeedback(BaseModel):
 
 
 _judge_agent = Agent[JudgeDeps, JudgeFeedback](
-    "openai:gpt-4o",
+    "openai:gpt-4.1",
     deps_type=JudgeDeps,
     output_type=JudgeFeedback,
     instructions=(
