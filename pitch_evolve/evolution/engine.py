@@ -4,11 +4,12 @@ import random
 from dataclasses import dataclass, field
 from typing import Callable, List
 
-from pitch_evolve.evals import PitchScores, heuristic_score
+from pitch_evolve.evals import JudgeFeedback, llm_judge_score
+from pitch_evolve.evolution.mutator import llm_mutate_prompt
 
 
 GeneratorFn = Callable[[str], str]
-EvaluatorFn = Callable[[str], PitchScores]
+EvaluatorFn = Callable[[str, str], JudgeFeedback]
 
 
 @dataclass
@@ -17,9 +18,10 @@ class PromptEvolutionEngine:
 
     population: List[str]
     generator: GeneratorFn
-    evaluator: EvaluatorFn = heuristic_score
+    evaluator: EvaluatorFn = llm_judge_score
+    evaluation_prompt: str = "Score this pitch from 1-5 for creativity, persuasiveness, clarity, statistical grounding, and thematic relevance. Then provide a one-sentence suggestion for improving the prompt."
     tournament_size: int = 2
-    mutation_rate: float = 0.3
+    mutation_rate: float = 0.1
     history: List[List[str]] = field(default_factory=list)
 
     def evolve(self, generations: int = 1) -> List[str]:
@@ -28,32 +30,21 @@ class PromptEvolutionEngine:
             scored = []
             for prompt in self.population:
                 pitch = self.generator(prompt)
-                score = self.evaluator(pitch).average()
-                scored.append((prompt, score))
+                feedback = self.evaluator(pitch, self.evaluation_prompt)
+                score = feedback.scores.average() if feedback.scores else 0.0
+                scored.append((prompt, score, feedback.suggestion))
 
             scored.sort(key=lambda x: x[1], reverse=True)
-            survivors = [p for p, _ in scored[: self.tournament_size]]
-            new_population = survivors.copy()
+            survivors = scored[: self.tournament_size]
+            new_population = [p for p, _, _ in survivors]
 
             while len(new_population) < len(self.population):
-                parent = random.choice(survivors)
-                new_population.append(self._mutate(parent))
+                parent, _, suggestion = random.choice(survivors)
+                if suggestion and random.random() < self.mutation_rate:
+                    new_population.append(llm_mutate_prompt(parent, suggestion))
+                else:
+                    new_population.append(parent)
 
             self.history.append(new_population)
             self.population = new_population
         return self.population
-
-    def _mutate(self, prompt: str) -> str:
-        """Apply a simple textual mutation to a prompt."""
-        if random.random() > self.mutation_rate:
-            return prompt
-        mutations = [
-            "Please include a recent statistic in your answer.",
-            "Emphasize community benefits.",
-            "Use a creative hook at the beginning.",
-            "Conclude with a strong call to action.",
-        ]
-        addition = random.choice(mutations)
-        if addition not in prompt:
-            return f"{prompt.strip()} {addition}"
-        return prompt

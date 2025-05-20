@@ -1,9 +1,10 @@
-from pitch_evolve.evals import heuristic_score
+from pitch_evolve.evals import llm_judge_score, JudgeFeedback, PitchScores
 
 
-def test_heuristic_score_basic():
-    text = "Join our Go community of 1000 engineers. Sign up today!"
-    scores = heuristic_score(text)
-    assert scores.persuasiveness == 5
-    assert scores.statistical_grounding == 5
-    assert scores.thematic_relevance == 5
+def test_llm_judge_score_offline():
+    feedback = llm_judge_score(
+        "Join our Go community of 1000 engineers.", "score this"
+    )
+    assert isinstance(feedback, JudgeFeedback)
+    if feedback.scores is not None:
+        assert isinstance(feedback.scores, PitchScores)
