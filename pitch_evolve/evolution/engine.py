@@ -22,7 +22,7 @@ class PromptEvolutionEngine:
     evaluator: EvaluatorFn = llm_judge_score
     evaluation_prompt: str = "Score this pitch from 1-5 for creativity, persuasiveness, clarity, statistical grounding, and thematic relevance. Then provide a one-sentence suggestion for improving the prompt."
     tournament_size: int = 2
-    mutation_rate: float = 0.1
+    mutation_rate: float = 0.5
     history: List[List[str]] = field(default_factory=list)
     score_history: List[float] = field(default_factory=list)
     output_dir: str = "output"
@@ -45,6 +45,10 @@ class PromptEvolutionEngine:
             avg_score = sum(s for _, s, _, _ in scored) / \
                 len(scored) if scored else 0.0
             self.score_history.append(avg_score)
+
+            # log all of the scores for this generation:
+            for z in scored:
+                print(f"score:{z[1]}, prompt:{z[0]}\n")
 
             scored.sort(key=lambda x: x[1], reverse=True)
             best_prompt, _, best_pitch, _ = scored[0]
