@@ -3,7 +3,11 @@ from typing import Dict, Any, Optional
 
 from pitch_evolve.tools.web_search import web_search
 
-from pydantic_ai import Agent, RunContext
+try:
+    from pydantic_ai import Agent, RunContext
+except Exception:  # pragma: no cover - optional dependency
+    Agent = None
+    RunContext = None
 from pydantic import BaseModel, Field
 from pitch_evolve.tools.file_tools import write_file
 from pitch_evolve.prompts import utils as prompt_utils
@@ -38,30 +42,30 @@ class PitchWriterDeps(BaseModel):
         }
 
 
-pitch_writer_agent = Agent[PitchWriterDeps, PitchWriterOutput](
-    "openai:gpt-4.1",
-    deps_type=PitchWriterDeps,
-    output_type=PitchWriterOutput,
-    tools=[write_file],
-    instructions=prompt_utils.load("prompts/pitcher.txt"),
-    model_settings={"temperature": 0.7, "max_tokens": 4096},
-)
+if Agent is not None:
+    pitch_writer_agent = Agent[PitchWriterDeps, PitchWriterOutput](
+        "openai:gpt-4.1",
+        deps_type=PitchWriterDeps,
+        output_type=PitchWriterOutput,
+        tools=[write_file],
+        instructions=prompt_utils.load("prompts/pitcher.txt"),
+        model_settings={"temperature": 0.7, "max_tokens": 4096},
+    )
+else:  # pragma: no cover - environment may lack pydantic_ai
+    pitch_writer_agent = None
 
 
-@pitch_writer_agent.tool
-async def web_search(ctx: RunContext[PitchWriterDeps], query: str, recency: str, max_results: int = 5) -> Dict[str, Any]:
-    """
-    Retrieve information from the web using Tavily's search engine.
+if pitch_writer_agent is not None:
+    @pitch_writer_agent.tool
+    async def web_search(
+        ctx: RunContext[PitchWriterDeps],
+        query: str,
+        recency: str,
+        max_results: int = 5,
+    ) -> Dict[str, Any]:
+        """Retrieve information from the web using Tavily's search engine."""
 
-    Parameters:
-        query: The information query to search for
-        recency: Timeframe filter ('day'/'d', 'week'/'w', 'month'/'m', 'year'/'y')
-        max_results: Number of results to return (default: 5)
-
-    Returns:
-        Collection of search results or None if search fails
-    """
-    return await ctx.deps.search(query, recency=recency, max_results=max_results)
+        return await ctx.deps.search(query, recency=recency, max_results=max_results)
 
 if __name__ == "__main__":
     prompt = """

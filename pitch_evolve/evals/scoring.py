@@ -1,19 +1,20 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
 from typing import Optional
 
 
-@dataclass
-class PitchScores:
+from pydantic import BaseModel, Field
+
+
+class PitchScores(BaseModel):
     """Container for pitch evaluation scores."""
 
-    creativity: int
-    persuasiveness: int
-    clarity: int
-    statistical_grounding: int
-    thematic_relevance: int
+    creativity: int = Field(..., ge=1, le=5)
+    persuasiveness: int = Field(..., ge=1, le=5)
+    clarity: int = Field(..., ge=1, le=5)
+    statistical_grounding: int = Field(..., ge=1, le=5)
+    thematic_relevance: int = Field(..., ge=1, le=5)
 
     def average(self) -> float:
         """Return the average score across all dimensions."""
@@ -26,8 +27,7 @@ class PitchScores:
         ) / 5.0
 
 
-@dataclass
-class JudgeFeedback:
+class JudgeFeedback(BaseModel):
     """Scores and an optional prompt improvement suggestion."""
 
     scores: Optional[PitchScores] = None
@@ -35,34 +35,30 @@ class JudgeFeedback:
 
 
 def llm_judge_score(
-    text: str, evaluation_prompt: str, model_name: str = "gpt-4"
+    text: str, evaluation_prompt: str, model_name: str = "gpt-4o"
 ) -> JudgeFeedback:
-    """Placeholder for LLM-as-a-judge scoring.
+    """Score ``text`` using the ``llm_as_judge`` agent.
 
-    This function is structured so that it can call an LLM to score the text
-    and provide a prompt improvement suggestion according to the provided
-    ``evaluation_prompt``. In offline environments it simply returns empty
-    feedback.
+    Parameters
+    ----------
+    text:
+        The candidate pitch to evaluate.
+    evaluation_prompt:
+        Instructions describing how the pitch should be scored.
+    model_name:
+        Optional model name override for the underlying LLM.
+
+    Returns
+    -------
+    JudgeFeedback
+        Structured scores and an improvement suggestion.
     """
 
-    try:  # pragma: no cover - optional network call
-        import openai  # imported lazily so tests do not require it
+    try:
+        from pitch_evolve.agents.llm_as_judge import llm_as_judge
 
-        response = openai.ChatCompletion.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": evaluation_prompt},
-                {"role": "user", "content": text},
-            ],
-            temperature=0,
-        )
-        content = response.choices[0].message.content
-        numbers = list(map(int, re.findall(r"(\d)", content)))
-        suggestion_match = re.search(r"suggestion:\s*(.*)", content, re.I)
-        scores = PitchScores(*numbers[:5]) if len(numbers) >= 5 else None
-        suggestion = suggestion_match.group(1).strip() if suggestion_match else ""
-        return JudgeFeedback(scores=scores, suggestion=suggestion)
-    except Exception:
+        return llm_as_judge(text, evaluation_prompt, model_name=model_name)
+    except Exception:  # pragma: no cover - optional network call
         pass
 
     return JudgeFeedback()
