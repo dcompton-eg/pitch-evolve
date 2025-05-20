@@ -31,7 +31,8 @@ class PromptEvolutionEngine:
             scored = []
             for prompt in self.population:
                 pitch = self.generator(prompt)
-                feedback = self.evaluator(pitch, self.evaluation_prompt)
+                feedback_result = self.evaluator(pitch, self.evaluation_prompt)
+                feedback = feedback_result.output  # Access the JudgeFeedback object from AgentRunResult
                 score = feedback.scores.average() if feedback.scores else 0.0
                 scored.append((prompt, score, feedback.suggestion))
 
