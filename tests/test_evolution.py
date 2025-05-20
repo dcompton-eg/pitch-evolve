@@ -9,7 +9,14 @@ def dummy_generator(prompt: str) -> str:
 def test_evolution_runs():
     def dummy_evaluator(text: str, prompt: str) -> JudgeFeedback:
         return JudgeFeedback(
-            scores=PitchScores(1, 1, 1, 1, 1), suggestion="Add a stat."
+            scores=PitchScores(
+                creativity=1,
+                persuasiveness=1,
+                clarity=1,
+                statistical_grounding=1,
+                thematic_relevance=1,
+            ),
+            suggestion="Add a stat.",
         )
 
     engine = PromptEvolutionEngine(

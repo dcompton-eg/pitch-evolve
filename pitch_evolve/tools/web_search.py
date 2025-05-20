@@ -1,7 +1,10 @@
 import logging
 import os
 from typing import Dict, Any, List, Optional
-from tavily import TavilyClient
+try:
+    from tavily import TavilyClient
+except Exception:  # pragma: no cover - optional dependency
+    TavilyClient = None
 
 log_formatter = logging.Formatter(
     '%(levelname)s::%(asctime)s::%(module)s::%(message)s',
@@ -28,6 +31,10 @@ def web_search(query: str,
     Returns:
         Collection of search results or None if search fails
     """
+    if TavilyClient is None:
+        logger.warning("TavilyClient not available; web search disabled")
+        return None
+
     TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")  # Tavily API key for search
     search_engine = TavilyClient(api_key=TAVILY_API_KEY)
 
