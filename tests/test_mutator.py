@@ -1,3 +1,6 @@
+import os
+os.environ.setdefault("OPENAI_API_KEY", "sk-test")
+
 from pitch_evolve.evolution.mutator import llm_mutate_prompt
 
 
