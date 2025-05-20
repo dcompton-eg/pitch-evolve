@@ -1,3 +1,6 @@
+import os
+os.environ.setdefault("OPENAI_API_KEY", "sk-test")
+
 import pytest
 
 from pitch_evolve.agents.pitch_writer import PitchWriterDeps
