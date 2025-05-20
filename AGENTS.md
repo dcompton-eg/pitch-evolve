@@ -14,6 +14,9 @@ Each agent in the system follows this basic architecture:
 2. **Pitch Generation Agent**: Specializes in creating compelling pitches based on target audience and community attributes
 3. **Prompt Evolution Engine**: Implements strategies for evolving prompts based on evaluation feedback
 
+All agents MUST be implemented using the pydantic-ai framework.
+All agents should have strongly typed/structured outputs using pydantic.
+
 ## Evolution Strategy
 
 The prompt evolution follows a tournament selection approach:
