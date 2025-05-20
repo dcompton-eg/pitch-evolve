@@ -28,4 +28,5 @@ def test_evolution_runs():
     result = engine.evolve(generations=1)
     assert len(result) == 3
     assert any("Add a stat." in p for p in result)
+    assert engine.score_history == [1.0]
 
