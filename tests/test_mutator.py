@@ -1,7 +1,7 @@
 import os
 os.environ.setdefault("OPENAI_API_KEY", "sk-test")
 
-from pitch_evolve.evolution.mutator import llm_mutate_prompt
+from pitch_evolve.agents import llm_mutate_prompt
 
 
 def test_llm_mutate_prompt_fallback():

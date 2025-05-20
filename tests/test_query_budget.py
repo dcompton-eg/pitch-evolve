@@ -3,7 +3,7 @@ os.environ.setdefault("OPENAI_API_KEY", "sk-test")
 
 import pytest
 
-from pitch_evolve.agents.pitch_writer import PitchWriterDeps
+from pitch_evolve.agents import PitchWriterDeps
 
 
 @pytest.mark.asyncio

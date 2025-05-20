@@ -55,7 +55,7 @@ def llm_judge_score(
     """
 
     try:
-        from pitch_evolve.agents.llm_as_judge import llm_as_judge
+        from pitch_evolve.agents import llm_as_judge
 
         return llm_as_judge(text, evaluation_prompt, model_name=model_name)
     except Exception:  # pragma: no cover - optional network call

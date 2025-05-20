@@ -1,5 +1,5 @@
 from .evolution import PromptEvolutionEngine
-from .agents.pitch_writer import pitch_writer_agent, PitchWriterDeps
+from .agents import pitch_writer_agent, PitchWriterDeps
 import argparse
 import copy
 

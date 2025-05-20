@@ -6,7 +6,7 @@ from typing import Callable, List
 import os
 
 from pitch_evolve.evals import JudgeFeedback, llm_judge_score
-from pitch_evolve.evolution.mutator import llm_mutate_prompt
+from pitch_evolve.agents import llm_mutate_prompt
 
 
 GeneratorFn = Callable[[str], str]
