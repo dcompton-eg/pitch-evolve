@@ -7,7 +7,6 @@ import os
 
 from pitch_evolve.agents.llm_as_judge import JudgeFeedback, llm_as_judge
 from pitch_evolve.agents.llm_as_judge_mutator import llm_as_judge_mutator
-from pitch_evolve.evolution.mutator import llm_mutate_prompt
 
 
 GeneratorFn = Callable[[str], str]
@@ -68,7 +67,9 @@ class PromptEvolutionEngine:
                 parent, _, _, suggestion = random.choice(survivors)
                 if suggestion and random.random() < self.mutation_rate:
                     new_population.append(
-                        llm_mutate_prompt(parent, suggestion))
+                        llm_as_judge_mutator(
+                            parent_feedback, parent_pitch, parent_prompt)
+                    )
                 else:
                     new_population.append(parent)
 

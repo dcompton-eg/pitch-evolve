@@ -1,6 +1,6 @@
 # Pitch-Evolve Agents
 
-This document describes the prompt-evolving agents used in the Pitch-Evolve project for generating pitches to encourage people to join a Go community.
+This document describes how agents should interact with this repository.
 
 ## Overview
 
