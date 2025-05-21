@@ -69,3 +69,9 @@ Planned enhancements include:
 - Fine-tuning on real-world feedback data
 - A/B testing framework for pitch effectiveness
 - Localization support for international Go communities
+
+## Repository Interaction Guidelines
+
+- Run `pytest -q` before committing any changes to ensure the test suite passes.
+- Commit code directly to the main branch (no extra branches).
+- Include a short summary of the test output in the PR description.
