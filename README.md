@@ -1,6 +1,6 @@
 # Pitch-Evolve
 
-Pitch-Evolve is a Python package that demonstrates how AI agents leverage prompt-evolution to improve the quality of text content over multiple generations/rounds.  The use-case is the generation of a pitch to join a programming language community, but this technique can be applied to any content where prompt engineering could improve the quality of output.
+Pitch-Evolve is a Python package that demonstrates how AI agents can leverage prompt-evolution to improve the quality of text content over multiple generations/rounds.  The use-case is the generation of a pitch to join a programming language community, but this technique can be applied to any content where prompt engineering could improve the quality of output.
 
 ## Features
 
@@ -17,9 +17,6 @@ Pitch-Evolve is a Python package that demonstrates how AI agents leverage prompt
 3. Activate the environment with `source venv/bin/activate`.
 4. Use `python -m pitch_evolve.cli pitch "your base prompt"` to generate a pitch or
    `python -m pitch_evolve.cli evolve "your base prompt"` to start prompt evolution.
-
-Test the package by running `pytest -q`.
-
 
 ## Docs
 
